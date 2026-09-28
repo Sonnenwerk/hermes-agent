@@ -35,18 +35,14 @@ export function LogTail({ className, emptyLabel, lines, onMatchCountChange, quer
   useEffect(() => {
     const el = scrollRef.current
 
-    if (el && stickRef.current && !query.trim()) {
+    if (el && !query.trim()) {
+      stickRef.current = true
       el.scrollTop = el.scrollHeight
     }
   }, [lines, query])
 
   useEffect(() => {
-    if (!query.trim()) {
-      stickRef.current = true
-      return
-    }
-
-    if (firstMatchLine < 0) {
+    if (!query.trim() || firstMatchLine < 0) {
       return
     }
 
