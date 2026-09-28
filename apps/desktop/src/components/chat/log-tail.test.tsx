@@ -65,9 +65,9 @@ describe('LogTail search', () => {
 
     Object.defineProperties(scrollable, {
       clientHeight: { configurable: true, value: 100 },
-      scrollHeight: { configurable: true, value: 200 },
-      scrollTop: { configurable: true, value: 0 }
+      scrollHeight: { configurable: true, value: 200 }
     })
+    scrollable.scrollTop = 0
     scrollable.dispatchEvent(new Event('scroll', { bubbles: true }))
 
     rerender(<LogTail emptyLabel="No logs" lines={['needle', 'new output']} query="" />)
