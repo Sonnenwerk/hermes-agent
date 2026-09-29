@@ -2598,6 +2598,8 @@ export const deOverrides = {
       failedRemove: provider => `${provider} konnte nicht entfernt werden`,
       noProviderKeys: 'Keine Provider-API-Keys verfügbar.',
       searchKeys: 'Provider suchen…',
+      searchAccounts: 'Konten suchen',
+      noAccountsMatch: 'Keine Konten entsprechen Ihrer Suche.',
       noKeysMatch: 'Keine Provider entsprechen Ihrer Suche.',
       localEndpoint: {
         title: 'Lokaler / eigener Endpoint',

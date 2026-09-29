@@ -2157,6 +2157,8 @@ export const zh = defineLocale({
       failedRemove: provider => `无法移除 ${provider}`,
       noProviderKeys: '没有可用的提供方 API 密钥。',
       searchKeys: '搜索提供方…',
+      searchAccounts: '搜索账户',
+      noAccountsMatch: '没有符合搜索条件的账户。',
       noKeysMatch: '没有匹配的提供方。',
       localEndpoint: {
         title: '本地 / 自定义端点',

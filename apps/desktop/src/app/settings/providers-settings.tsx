@@ -11,7 +11,7 @@ import {
   OpenRouterProviderRow,
   ProviderRow,
   providerTitle,
-  sortProviders
+
 } from '@/components/onboarding'
 import { Button } from '@/components/ui/button'
 import { RowButton } from '@/components/ui/row-button'
@@ -19,7 +19,7 @@ import { SearchField } from '@/components/ui/search-field'
 import { Tip } from '@/components/ui/tooltip'
 import { disconnectOAuthProvider, listOAuthProviders } from '@/hermes'
 import { useI18n } from '@/i18n'
-import { Check, ChevronDown, ChevronRight, KeyRound, Loader2, Terminal, Trash2 } from '@/lib/icons'
+import { Check, ChevronDown, ChevronRight, Users, Loader2, Terminal, Trash2 } from '@/lib/icons'
 import { normalize } from '@/lib/text'
 import { cn } from '@/lib/utils'
 import { confirm } from '@/store/confirm'
@@ -156,6 +156,8 @@ function OAuthPicker({
   onWantApiKey,
   onWantLocalModels,
   providers,
+  accountQuery,
+  onAccountQueryChange,
   profile
 }: {
   disconnecting: null | string
@@ -164,14 +166,21 @@ function OAuthPicker({
   onWantApiKey: () => void
   onWantLocalModels: () => void
   providers: OAuthProvider[]
+  accountQuery: string
+  onAccountQueryChange: (query: string) => void
   profile?: string
 }) {
   const { t } = useI18n()
   const p = t.settings.providers
   const [showAll, setShowAll] = useState(false)
-  const ordered = useMemo(() => sortProviders(providers), [providers])
+  const ordered = useMemo(() => {
+    const query = normalize(accountQuery)
+    return providers
+      .filter(provider => !query || normalize(`${providerTitle(provider)} ${provider.id}`).includes(query))
+      .sort((a, b) => providerTitle(a).localeCompare(providerTitle(b), undefined, { sensitivity: 'base' }))
+  }, [accountQuery, providers])
 
-  if (ordered.length === 0) {
+  if (providers.length === 0) {
     return null
   }
 
@@ -184,16 +193,16 @@ function OAuthPicker({
   const rest = featured ? ordered.filter(p => p.id !== FEATURED_ID) : ordered
   // Keep connected accounts grouped and always visible; only the unconnected
   // providers hide behind the disclosure, so the page leads with what's set up.
-  // Both lists preserve `sortProviders` order (curated priority, then name).
+  // Both lists preserve alphabetical order.
   const connected = rest.filter(isConnected)
   const others = rest.filter(p => !isConnected(p))
   const collapsible = others.length > 0
-  const showOthers = !collapsible || showAll
+  const showOthers = !collapsible || showAll || Boolean(accountQuery)
 
   return (
     <section className="mb-5 grid gap-2">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-        <SettingsCategoryHeading icon={KeyRound} title={p.connectAccount} />
+        <SettingsCategoryHeading icon={Users} title={p.connectAccount} />
         <Button
           className="text-[length:var(--conversation-caption-font-size)]"
           onClick={onWantApiKey}
@@ -207,10 +216,23 @@ function OAuthPicker({
       <p className="-mt-2 mb-1 text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">
         {p.intro}
       </p>
+      <SearchField
+        aria-label={p.searchAccounts}
+        containerClassName="w-full"
+        onChange={onAccountQueryChange}
+        placeholder={p.searchAccounts}
+        value={accountQuery}
+      />
+      {ordered.length === 0 ? (
+        <div className="grid min-h-24 place-items-center px-4 py-6 text-center text-[length:var(--conversation-caption-font-size)] text-muted-foreground">
+          {p.noAccountsMatch}
+        </div>
+      ) : (
+        <>
       {featured && <FeaturedProviderRow onSelect={select} provider={featured} />}
       {/* Slot #2 — the no-account path, matching onboarding. Behind the
           --local launch flag like every local-models surface. */}
-      {$localModelsEnabled.get() && <LocalModelsProviderRow onClick={onWantLocalModels} />}
+      {!accountQuery && $localModelsEnabled.get() && <LocalModelsProviderRow onClick={onWantLocalModels} />}
       {connected.length > 0 && (
         <>
           <GroupLabel>{p.connected}</GroupLabel>
@@ -232,8 +254,8 @@ function OAuthPicker({
           {others.map(p => (
             <ProviderRow key={p.id} onSelect={select} provider={p} />
           ))}
-          <FireworksProviderRow onClick={onWantApiKey} />
-          <OpenRouterProviderRow onClick={onWantApiKey} />
+          {!accountQuery && <FireworksProviderRow onClick={onWantApiKey} />}
+          {!accountQuery && <OpenRouterProviderRow onClick={onWantApiKey} />}
         </>
       )}
       {collapsible && (
@@ -247,6 +269,7 @@ function OAuthPicker({
           {showAll ? p.collapse : connected.length > 0 ? p.connectAnother : p.otherProviders}
           <ChevronDown className={cn('size-3.5 transition', showAll && 'rotate-180')} />
         </Button>
+        </>
       )}
     </section>
   )
@@ -396,6 +419,7 @@ export function ProvidersSettings({
   const [disconnecting, setDisconnecting] = useState<null | string>(null)
   // Free-text filter for the API-keys view (provider name / env-var key / desc).
   const [keyQuery, setKeyQuery] = useState('')
+  const [accountQuery, setAccountQuery] = useState('')
   // The onboarding overlay owns the OAuth flow. Watch its `manual` flag so we
   // re-read connection state when the user finishes (or dismisses) a sign-in
   // they launched from this page — otherwise the cards keep their stale status.
@@ -583,6 +607,8 @@ export function ProvidersSettings({
         onWantLocalModels={() => onViewChange('local')}
         profile={scopeProfile}
         providers={oauthProviders}
+        accountQuery={accountQuery}
+        onAccountQueryChange={setAccountQuery}
       />
     </SettingsContent>
   )

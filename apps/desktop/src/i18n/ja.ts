@@ -1542,6 +1542,8 @@ export const ja = defineLocale({
       failedRemove: provider => `${provider} を削除できませんでした`,
       noProviderKeys: '利用可能なプロバイダー API キーがありません。',
       searchKeys: 'プロバイダーを検索…',
+      searchAccounts: 'アカウントを検索',
+      noAccountsMatch: '一致するアカウントはありません。',
       noKeysMatch: '一致するプロバイダーがありません。',
       localEndpoint: {
         title: 'ローカル / カスタムエンドポイント',

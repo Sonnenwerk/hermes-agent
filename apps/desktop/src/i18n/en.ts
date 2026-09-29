@@ -2299,6 +2299,8 @@ export const en: Translations = {
       failedRemove: provider => `Could not remove ${provider}`,
       noProviderKeys: 'No provider API keys available.',
       searchKeys: 'Search providers…',
+      searchAccounts: 'Search accounts',
+      noAccountsMatch: 'No accounts match your search.',
       noKeysMatch: 'No providers match your search.',
       localEndpoint: {
         title: 'Local / custom endpoint',

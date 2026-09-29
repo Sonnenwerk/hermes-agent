@@ -2587,6 +2587,8 @@ export const esOverrides = {
       failedRemove: provider => `No se pudo eliminar ${provider}`,
       noProviderKeys: 'No hay claves API de proveedores disponibles.',
       searchKeys: 'Buscar proveedores…',
+      searchAccounts: 'Buscar cuentas',
+      noAccountsMatch: 'Ninguna cuenta coincide con la búsqueda.',
       noKeysMatch: 'Ningún proveedor coincide con tu búsqueda.',
       localEndpoint: {
         title: 'Endpoint local o personalizado',
