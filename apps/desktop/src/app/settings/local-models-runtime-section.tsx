@@ -140,8 +140,6 @@ export function LocalModelsRuntimeSection({ status, jobs, lastError }: LocalMode
         />
       )}
 
-}
-
       {lastError?.kind === 'runtime-install' && <p className="text-[0.75rem] text-destructive">{lastError.error}</p>}
     </SettingsSection>
   )
