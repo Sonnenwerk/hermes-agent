@@ -2206,7 +2206,7 @@ export const deOverrides = {
       noRecommendationTitle: 'Keine automatische Empfehlung für diesen Rechner',
       noRecommendationDetail:
         'Die automatische Einrichtung braucht ein kuratiertes Modell, das vollständig in den Grafikspeicher oder den gemeinsamen Speicher passt. Sie können unten trotzdem ein Modell wählen oder weitere Modelle durchsuchen.',
-      noRecommendationAction: 'Modelle finden',
+      noRecommendationAction: 'Modelle durchsuchen',
       downloaded: 'Heruntergeladen',
       downloadAction: size => `Download · ${size}`,
       downloadProgress: (done, total) => `${done} von ${total} werden heruntergeladen`,
