@@ -10,8 +10,7 @@ import {
   LocalModelsProviderRow,
   OpenRouterProviderRow,
   ProviderRow,
-  providerTitle,
-
+  providerTitle
 } from '@/components/onboarding'
 import { Button } from '@/components/ui/button'
 import { RowButton } from '@/components/ui/row-button'
@@ -19,7 +18,7 @@ import { SearchField } from '@/components/ui/search-field'
 import { Tip } from '@/components/ui/tooltip'
 import { disconnectOAuthProvider, listOAuthProviders } from '@/hermes'
 import { useI18n } from '@/i18n'
-import { Check, ChevronDown, ChevronRight, Users, Loader2, Terminal, Trash2 } from '@/lib/icons'
+import { Check, ChevronDown, ChevronRight, Loader2, Terminal, Users, Trash2 } from '@/lib/icons'
 import { normalize } from '@/lib/text'
 import { cn } from '@/lib/utils'
 import { confirm } from '@/store/confirm'
@@ -229,23 +228,23 @@ function OAuthPicker({
         </div>
       ) : (
         <>
-      {featured && <FeaturedProviderRow onSelect={select} provider={featured} />}
-      {/* Slot #2 — the no-account path, matching onboarding. Behind the
-          --local launch flag like every local-models surface. */}
-      {!accountQuery && $localModelsEnabled.get() && <LocalModelsProviderRow onClick={onWantLocalModels} />}
-      {connected.length > 0 && (
-        <>
-          <GroupLabel>{p.connected}</GroupLabel>
-          {connected.map(p => (
-            <ConnectedProviderRow
-              disconnecting={disconnecting === p.id}
-              key={p.id}
-              onDisconnect={onDisconnect}
-              onSelect={select}
-              onTerminalDisconnect={onTerminalDisconnect}
-              provider={p}
-            />
-          ))}
+          {featured && <FeaturedProviderRow onSelect={select} provider={featured} />}
+          {/* Slot #2 — the no-account path, matching onboarding. Behind the
+              --local launch flag like every local-models surface. */}
+          {!accountQuery && $localModelsEnabled.get() && <LocalModelsProviderRow onClick={onWantLocalModels} />}
+          {connected.length > 0 && (
+            <>
+              <GroupLabel>{p.connected}</GroupLabel>
+              {connected.map(p => (
+                <ConnectedProviderRow
+                  disconnecting={disconnecting === p.id}
+                  key={p.id}
+                  onDisconnect={onDisconnect}
+                  onSelect={select}
+                  onTerminalDisconnect={onTerminalDisconnect}
+                  provider={p}
+                />
+              ))}
         </>
       )}
       {showOthers && (
