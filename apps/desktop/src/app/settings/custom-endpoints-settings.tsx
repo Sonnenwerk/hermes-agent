@@ -371,11 +371,15 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
       <div className="space-y-6">
         <section>
           <SectionHeading
-            aside={<Button onClick={openAdd} size="sm"><Plus />{ce.addTitle}</Button>}
+            aside={
+              <Button onClick={openAdd} size="sm">
+                <Plus />
+                {ce.addTitle}
+              </Button>
+            }
             icon={Globe}
-            meta={`${endpoints.length}`}
             page
-            title={t.settings.customEndpoints.title}
+            title={`${t.settings.customEndpoints.title} (${endpoints.length})`}
           />
           <div className="divide-y divide-border/40 rounded-md border border-border/50">
             {endpoints.length ? (
@@ -401,7 +405,13 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                     </div>
                   </div>
                   <div className="flex items-center gap-2 sm:justify-end">
-                    <Button aria-label={ce.editEndpointFor(endpoint.name)} onClick={() => openEdit(endpoint)} size="sm" type="button" variant="outline">
+                    <Button
+                      aria-label={ce.editEndpointFor(endpoint.name)}
+                      onClick={() => openEdit(endpoint)}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
                       <Pencil />
                       {ce.editEndpoint}
                     </Button>
