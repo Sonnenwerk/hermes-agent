@@ -1837,7 +1837,7 @@ export const zh = defineLocale({
       noRecommendationTitle: '此设备暂无自动推荐模型',
       noRecommendationDetail:
         '自动设置需要一个可完全放入显存或统一内存的精选模型。你仍可在下方自行选择，或浏览更多模型。',
-      noRecommendationAction: '浏览模型',
+      noRecommendationAction: '查找模型',
       downloaded: '已下载',
       downloadAction: size => `下载 · ${size}`,
       downloadProgress: (done, total) => `${done} / ${total}`,
