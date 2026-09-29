@@ -1620,6 +1620,13 @@ export const esOverrides = {
     customEndpoints: {
       active: 'Activo',
       apiKeySet: 'Clave API configurada',
+      noApiKey: 'Sin clave API',
+      usesProviderApiKey: 'Usa la clave API del proveedor',
+      editEndpoint: 'Editar',
+      editEndpointFor: name => "Editar endpoint: " + name,
+      editTitleFor: name => "Editar endpoint: " + name,
+      showApiKey: 'Mostrar clave API',
+      hideApiKey: 'Ocultar clave API',
       use: 'Usar',
       editTitle: 'Editar endpoint',
       addTitle: 'Añadir endpoint',

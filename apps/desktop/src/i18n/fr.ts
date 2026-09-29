@@ -1625,6 +1625,13 @@ export const frOverrides = {
     customEndpoints: {
       active: 'Actif',
       apiKeySet: 'Clé API définie',
+      noApiKey: 'Aucune clé API',
+      usesProviderApiKey: 'Utilise la clé API du fournisseur',
+      editEndpoint: 'Modifier',
+      editEndpointFor: name => "Modifier le point de terminaison : " + name,
+      editTitleFor: name => "Modifier le point de terminaison : " + name,
+      showApiKey: 'Afficher la clé API',
+      hideApiKey: 'Masquer la clé API',
       use: 'Utiliser',
       editTitle: 'Modifier le point de terminaison',
       addTitle: 'Ajouter un point de terminaison',
