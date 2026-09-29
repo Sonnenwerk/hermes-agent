@@ -531,8 +531,9 @@ describe('BrowseSection', () => {
     expect(browse).not.toBeNull()
     const scroll: Mock<(options?: boolean | ScrollIntoViewOptions) => void> = vi.fn()
     Object.defineProperty(browse, 'scrollIntoView', { configurable: true, value: scroll })
-    fireEvent.click(screen.getByRole('button', { name: /browse models/i }))
+    fireEvent.click(screen.getByRole('button', { name: /find models/i }))
     expect(scroll).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+    expect(search).toHaveFocus()
     expect(mocked.downloadLocalModel).not.toHaveBeenCalled()
 
     // The backend reports the completed download on refresh. Use must send

@@ -1906,7 +1906,7 @@ export const en: Translations = {
       noRecommendationTitle: 'No automatic recommendation for this machine',
       noRecommendationDetail:
         'Automatic setup requires a curated model that fits entirely in GPU or unified memory. You can still choose a model below or browse more models.',
-      noRecommendationAction: 'Browse models',
+      noRecommendationAction: 'Find models',
       downloaded: 'Downloaded',
       downloadAction: size => `Download · ${size}`,
       downloadProgress: (done, total) => `${done} of ${total}`,
