@@ -253,6 +253,7 @@ export interface CustomEndpointModelDetail {
 }
 
 export interface CustomEndpoint {
+  api_key_source?: 'endpoint' | 'provider' | 'none'
   api_key_preview?: null | string
   api_key_source?: 'endpoint' | 'provider' | 'none'
   api_mode?: CustomEndpointApiMode
