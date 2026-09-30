@@ -14,8 +14,7 @@ import {
 } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
-import { Check, Globe, Loader2, Plus, Save, Trash2, Zap } from '@/lib/icons'
-import { cn } from '@/lib/utils'
+import { Check, Eye, EyeOff, Globe, Loader2, Pencil, Plus, Save, Trash2, Zap } from '@/lib/icons'
 import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
 import { $settingsRequestProfile } from '@/store/settings-scope'
@@ -125,6 +124,8 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
   const [deleting, setDeleting] = useState<string | null>(null)
   const [endpoints, setEndpoints] = useState<CustomEndpoint[]>([])
   const [form, setForm] = useState<EndpointForm>(EMPTY_FORM)
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [showApiKey, setShowApiKey] = useState(false)
   const [discoveredModels, setDiscoveredModels] = useState<string[]>([])
   // Alias metadata from the last Test; the backend resolves a picked alias to its
   // canonical model + reasoning effort on Save (#93622).
@@ -144,6 +145,8 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
     mounted.current = true
     setLoading(true)
     setForm(EMPTY_FORM)
+    setEditorOpen(false)
+    setShowApiKey(false)
     setDiscoveredModels([])
     setDiscoveredDetails([])
     setEndpoints([])
@@ -157,12 +160,6 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         }
 
         setEndpoints(data.endpoints)
-        const current = data.endpoints.find(endpoint => endpoint.is_current) ?? data.endpoints[0]
-
-        if (current) {
-          setForm(formFromEndpoint(current))
-          setDiscoveredModels(current.models)
-        }
       } catch (err) {
         notifyError(err, copyRef.current.couldNotLoad)
       } finally {
@@ -180,6 +177,30 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
     }
   }, [scopeProfile])
 
+  function closeEditor() {
+    setEditorOpen(false)
+    setShowApiKey(false)
+    setForm(EMPTY_FORM)
+    setDiscoveredModels([])
+    setDiscoveredDetails([])
+  }
+
+  function openAdd() {
+    setForm(EMPTY_FORM)
+    setShowApiKey(false)
+    setDiscoveredModels([])
+    setDiscoveredDetails([])
+    setEditorOpen(true)
+  }
+
+  function openEdit(endpoint: CustomEndpoint) {
+    setForm(formFromEndpoint(endpoint))
+    setShowApiKey(false)
+    setDiscoveredModels(endpoint.models)
+    setDiscoveredDetails([])
+    setEditorOpen(true)
+  }
+
   async function handleSave() {
     try {
       setSaving(true)
@@ -195,6 +216,8 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
       if (saved) {
         setForm(formFromEndpoint(saved))
         setDiscoveredModels(saved.models)
+        setEditorOpen(false)
+        setShowApiKey(false)
       }
 
       if (saved && saved.is_current) {
@@ -314,6 +337,7 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
         setForm(EMPTY_FORM)
         setDiscoveredModels([])
         setDiscoveredDetails([])
+        setEditorOpen(false)
       }
 
       onConfigSaved?.()
@@ -346,20 +370,22 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
       <SettingsProfileScope className="mb-5" />
       <div className="space-y-6">
         <section>
-          <SectionHeading icon={Globe} meta={`${endpoints.length}`} page title={t.settings.customEndpoints.title} />
+          <SectionHeading
+            aside={
+              <Button onClick={openAdd} size="sm">
+                <Plus />
+                {ce.addTitle}
+              </Button>
+            }
+            icon={Globe}
+            page
+            title={`${t.settings.customEndpoints.title} (${endpoints.length})`}
+          />
           <div className="divide-y divide-border/40 rounded-md border border-border/50">
             {endpoints.length ? (
               endpoints.map(endpoint => (
                 <div className="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center" key={endpoint.id}>
-                  <button
-                    className="min-w-0 text-left"
-                    onClick={() => {
-                      setForm(formFromEndpoint(endpoint))
-                      setDiscoveredModels(endpoint.models)
-                      setDiscoveredDetails([])
-                    }}
-                    type="button"
-                  >
+                  <div className="min-w-0">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="truncate text-sm font-medium">{endpoint.name}</span>
                       {endpoint.is_current && (
@@ -375,19 +401,31 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                     </div>
                     <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
                       <span>{endpoint.model}</span>
-                      {endpoint.has_api_key && <span>{endpoint.api_key_preview ?? ce.apiKeySet}</span>}
+                      <span>{endpoint.api_key_source === 'provider' ? ce.usesProviderApiKey : endpoint.has_api_key ? ce.apiKeySet : ce.noApiKey}</span>
                     </div>
-                  </button>
+                  </div>
                   <div className="flex items-center gap-2 sm:justify-end">
                     <Button
-                      disabled={endpoint.is_current || activating === endpoint.id}
-                      onClick={() => void handleActivate(endpoint)}
+                      aria-label={ce.editEndpointFor(endpoint.name)}
+                      onClick={() => openEdit(endpoint)}
                       size="sm"
+                      type="button"
                       variant="outline"
                     >
-                      {activating === endpoint.id ? <Loader2 className="animate-spin" /> : <Zap />}
-                      {ce.use}
+                      <Pencil />
+                      {ce.editEndpoint}
                     </Button>
+                    {!endpoint.is_current && (
+                      <Button
+                        disabled={activating === endpoint.id}
+                        onClick={() => void handleActivate(endpoint)}
+                        size="sm"
+                        variant="outline"
+                      >
+                      {activating === endpoint.id ? <Loader2 className="animate-spin" /> : <Zap />}
+                        {ce.use}
+                      </Button>
+                    )}
                     {endpoint.source !== 'direct-config' && (
                       <Button
                         aria-label={t.settings.customEndpoints.deleteEndpoint}
@@ -412,8 +450,15 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
           </div>
         </section>
 
-        <section>
-          <SectionHeading icon={Plus} title={form.id ? ce.editTitle : ce.addTitle} />
+        {editorOpen && (
+          <section onKeyDown={event => {
+            if (event.key === 'Escape') {
+              event.preventDefault()
+              event.stopPropagation()
+              closeEditor()
+            }
+          }}>
+          <SectionHeading icon={Pencil} title={form.id ? ce.editTitleFor(endpoints.find(endpoint => endpoint.id === form.id)?.name ?? form.name) : ce.addTitle} />
           <div className="grid gap-3 rounded-md border border-border/50 p-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-1.5 text-xs text-muted-foreground">
@@ -472,12 +517,17 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
             </div>
             <label className="grid gap-1.5 text-xs text-muted-foreground">
               {ce.fields.apiKey}
-              <Input
-                onChange={event => setForm(current => ({ ...current, apiKey: event.target.value }))}
-                placeholder={form.id ? ce.fields.apiKeyNewPlaceholder : ce.fields.apiKeyPlaceholder}
-                type="password"
-                value={form.apiKey}
-              />
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1">
+                <Input
+                  onChange={event => setForm(current => ({ ...current, apiKey: event.target.value }))}
+                  placeholder={form.id && endpoints.find(endpoint => endpoint.id === form.id)?.has_api_key ? '••••••••' : form.id ? ce.fields.apiKeyNewPlaceholder : ce.fields.apiKeyPlaceholder}
+                  type={showApiKey ? 'text' : 'password'}
+                  value={form.apiKey}
+                />
+                <Button aria-label={showApiKey ? ce.hideApiKey : ce.showApiKey} onClick={() => setShowApiKey(value => !value)} size="icon-sm" type="button" variant="ghost">
+                  {showApiKey ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
             </label>
             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <label className="flex items-center gap-2">
@@ -508,21 +558,11 @@ export function CustomEndpointsSettings({ onConfigSaved, onMainModelChanged }: C
                 {saving ? <Loader2 className="animate-spin" /> : <Save />}
                 {ce.save}
               </Button>
-              <Button
-                className={cn(!form.id && 'hidden')}
-                onClick={() => {
-                  setForm(EMPTY_FORM)
-                  setDiscoveredModels([])
-                  setDiscoveredDetails([])
-                }}
-                type="button"
-                variant="ghost"
-              >
-                {ce.newEndpoint}
-              </Button>
+              <Button onClick={closeEditor} type="button" variant="ghost">{t.common.cancel}</Button>
             </div>
           </div>
-        </section>
+          </section>
+        )}
       </div>
     </SettingsContent>
   )

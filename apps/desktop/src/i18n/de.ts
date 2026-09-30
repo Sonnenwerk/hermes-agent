@@ -1619,6 +1619,13 @@ export const deOverrides = {
     customEndpoints: {
       active: 'Aktiv',
       apiKeySet: 'API-Schlüssel gesetzt',
+      noApiKey: 'Kein API-Key',
+      usesProviderApiKey: 'Verwendet Provider-API-Key',
+      editEndpoint: 'Bearbeiten',
+      editEndpointFor: name => "Endpunkt bearbeiten: " + name,
+      editTitleFor: name => "Endpunkt bearbeiten: " + name,
+      showApiKey: 'API-Key anzeigen',
+      hideApiKey: 'API-Key verbergen',
       use: 'Verwenden',
       editTitle: 'Endpunkt bearbeiten',
       addTitle: 'Endpunkt hinzufügen',
