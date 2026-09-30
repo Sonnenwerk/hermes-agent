@@ -2212,7 +2212,7 @@ export const frOverrides = {
       noRecommendationTitle: 'Aucune recommandation automatique pour cette machine',
       noRecommendationDetail:
         "La configuration automatique nécessite un modèle présélectionné qui tient entièrement dans la mémoire GPU ou unifiée. Vous pouvez toujours choisir un modèle ci-dessous ou parcourir d'autres modèles.",
-      noRecommendationAction: 'Parcourir les modèles',
+      noRecommendationAction: 'Trouver des modèles',
       downloaded: 'Téléchargé',
       downloadAction: size => `Télécharger · ${size}`,
       downloadProgress: (done, total) => `Téléchargement de ${done} sur ${total}`,

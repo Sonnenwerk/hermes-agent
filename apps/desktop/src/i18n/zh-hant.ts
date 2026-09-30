@@ -1472,7 +1472,7 @@ export const zhHant = defineLocale({
       noRecommendationTitle: '此裝置暫無自動推薦模型',
       noRecommendationDetail:
         '自動設定需要一個可完全放入 GPU 記憶體或統一記憶體的精選模型。你仍可在下方自行選擇，或瀏覽更多模型。',
-      noRecommendationAction: '瀏覽模型',
+      noRecommendationAction: '尋找模型',
       quickstartConfigure: '讓我選擇',
       downloaded: '已下載',
       downloadAction: size => `下載 · ${size}`,

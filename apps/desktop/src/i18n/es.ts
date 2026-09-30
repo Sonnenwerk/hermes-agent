@@ -2199,7 +2199,7 @@ export const esOverrides = {
       noRecommendationTitle: 'No hay recomendación automática para este equipo',
       noRecommendationDetail:
         'La configuración automática requiere un modelo seleccionado que quepa por completo en la memoria de la GPU o unificada. Aun así, puedes elegir un modelo abajo o explorar más modelos.',
-      noRecommendationAction: 'Explorar modelos',
+      noRecommendationAction: 'Buscar modelos',
       downloaded: 'Descargado',
       downloadAction: size => `Descargar · ${size}`,
       downloadProgress: (done, total) => `Descargando ${done} de ${total}`,
