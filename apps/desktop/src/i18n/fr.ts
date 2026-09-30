@@ -2606,6 +2606,8 @@ export const frOverrides = {
       failedRemove: provider => `Impossible de supprimer ${provider}`,
       noProviderKeys: 'Aucune clé API de fournisseur disponible.',
       searchKeys: 'Rechercher des fournisseurs…',
+      searchAccounts: 'Rechercher des comptes',
+      noAccountsMatch: 'Aucun compte ne correspond à votre recherche.',
       noKeysMatch: 'Aucun fournisseur ne correspond à votre recherche.',
       localEndpoint: {
         title: 'Point de terminaison local / personnalisé',

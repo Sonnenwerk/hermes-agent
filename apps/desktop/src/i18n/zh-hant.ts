@@ -1789,6 +1789,8 @@ export const zhHant = defineLocale({
       failedRemove: provider => `無法移除 ${provider}`,
       noProviderKeys: '沒有可用的提供方 API 金鑰。',
       searchKeys: '搜尋提供方…',
+      searchAccounts: '搜尋帳戶',
+      noAccountsMatch: '沒有符合搜尋條件的帳戶。',
       noKeysMatch: '沒有符合的提供方。',
       localEndpoint: {
         title: '本地 / 自訂端點',
