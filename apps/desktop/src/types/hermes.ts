@@ -50,19 +50,6 @@ export interface AudioTtsLeaseResponse {
   error?: string
 }
 
-/** `POST /api/audio/stt-lease` — local STT pre-load driven by voice-input sessions. */
-export interface AudioSttLeaseResponse {
-  ok: boolean
-  lease: string
-  active: boolean
-  /** Live lease holders after this call (null when the backend call itself failed). */
-  leases: null | number
-  /** Warm-up outcome: `loaded` | `cached` | `noop` | `error`. Release carries no action. */
-  action?: string
-  provider?: string
-  error?: string
-}
-
 export interface ElevenLabsVoice {
   label: string
   name: string
@@ -266,7 +253,9 @@ export interface CustomEndpointModelDetail {
 }
 
 export interface CustomEndpoint {
+  api_key_source?: 'endpoint' | 'provider' | 'none'
   api_key_preview?: null | string
+  api_key_source?: 'endpoint' | 'provider' | 'none'
   api_mode?: CustomEndpointApiMode
   base_url: string
   context_length?: null | number

@@ -1095,6 +1095,13 @@ export const zhHant = defineLocale({
     customEndpoints: {
       active: '已啟用',
       apiKeySet: '已設定 API 金鑰',
+      noApiKey: '未設定 API 金鑰',
+      usesProviderApiKey: '使用供應商 API 金鑰',
+      editEndpoint: '編輯',
+      editEndpointFor: name => "編輯端點：" + name,
+      editTitleFor: name => "編輯端點：" + name,
+      showApiKey: '顯示 API 金鑰',
+      hideApiKey: '隱藏 API 金鑰',
       use: '使用',
       editTitle: '編輯端點',
       addTitle: '新增端點',

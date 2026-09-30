@@ -1311,6 +1311,13 @@ export const zh = defineLocale({
     customEndpoints: {
       active: '已启用',
       apiKeySet: '已设置 API 密钥',
+      noApiKey: '未设置 API 密钥',
+      usesProviderApiKey: '使用提供商 API 密钥',
+      editEndpoint: '编辑',
+      editEndpointFor: name => "编辑端点：" + name,
+      editTitleFor: name => "编辑端点：" + name,
+      showApiKey: '显示 API 密钥',
+      hideApiKey: '隐藏 API 密钥',
       use: '使用',
       editTitle: '编辑端点',
       addTitle: '添加端点',

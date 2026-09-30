@@ -96,6 +96,8 @@ describe('CustomEndpointsSettings', () => {
       </I18nProvider>
     )
     await screen.findByText('暂无自定义端点')
+    expect(screen.queryByPlaceholderText('Axet Proxy')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /添加端点|新增端點/i }))
     fireEvent.change(screen.getByRole('textbox', { name: '名称' }), { target: { value: 'Fixture Ω' } })
     fireEvent.change(screen.getByRole('textbox', { name: '端点 URL' }), { target: { value: 'http://fixture.test/v1' } })
     fireEvent.change(screen.getByRole('combobox', { name: '默认模型' }), { target: { value: 'fixture-model' } })
@@ -135,6 +137,7 @@ describe('CustomEndpointsSettings', () => {
     render(<CustomEndpointsSettings />)
 
     await screen.findByText('No custom endpoints')
+    fireEvent.click(screen.getByRole('button', { name: 'Add endpoint' }))
     fireEvent.change(screen.getByPlaceholderText('Axet Proxy'), { target: { value: 'Responses gateway' } })
     fireEvent.change(screen.getByPlaceholderText('http://127.0.0.1:8081/v1'), {
       target: { value: 'https://responses-gateway.example.com/v1' }
@@ -208,6 +211,8 @@ describe('CustomEndpointsSettings', () => {
     render(<CustomEndpointsSettings />)
 
     await screen.findByText('Profile A')
+    expect(screen.queryByPlaceholderText('Axet Proxy')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint: Profile A' }))
     expect(screen.getByRole('button', { name: 'Anthropic Messages' }).getAttribute('aria-pressed')).toBe('true')
   })
 
@@ -223,6 +228,7 @@ describe('CustomEndpointsSettings', () => {
     )
 
     await screen.findByText('No custom endpoints')
+    fireEvent.click(screen.getByRole('button', { name: 'Add endpoint' }))
     fireEvent.change(screen.getByPlaceholderText('Axet Proxy'), { target: { value: 'Profile A' } })
     fireEvent.change(screen.getByPlaceholderText('http://127.0.0.1:8081/v1'), {
       target: { value: 'http://profile-a.test/v1' }
@@ -254,6 +260,7 @@ describe('CustomEndpointsSettings', () => {
     render(<CustomEndpointsSettings onConfigSaved={vi.fn()} onMainModelChanged={vi.fn()} />)
 
     await screen.findByText('No custom endpoints')
+    fireEvent.click(screen.getByRole('button', { name: 'Add endpoint' }))
     const urlInput = screen.getByPlaceholderText<HTMLInputElement>('http://127.0.0.1:8081/v1')
     fireEvent.change(urlInput, { target: { value: 'http://h.test' } })
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Test' })))

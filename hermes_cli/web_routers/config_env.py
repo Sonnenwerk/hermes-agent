@@ -452,11 +452,19 @@ def _endpoint_row(
     discover_models: bool, key_entry: Dict[str, Any], is_current: bool, source: str,
 ) -> Dict[str, Any]:
     has_api_key, api_key_preview = _api_key_display(key_entry)
+    raw_api_key = str(key_entry.get("api_key") or "").strip()
+    key_env = str(key_entry.get("key_env") or "").strip()
+    if raw_api_key:
+        api_key_source = "endpoint"
+    elif key_env:
+        api_key_source = "endpoint" if key_env == custom_endpoint_key_env(endpoint_id) else "provider"
+    else:
+        api_key_source = "none"
     return {
         "id": endpoint_id, "name": name, "base_url": base_url, "model": model, "models": models,
         "api_mode": _endpoint_api_mode(key_entry),
         "context_length": context_length, "discover_models": discover_models,
-        "has_api_key": has_api_key, "api_key_preview": api_key_preview,
+        "has_api_key": has_api_key, "api_key_preview": api_key_preview, "api_key_source": api_key_source,
         "is_current": is_current, "source": source,
     }
 
