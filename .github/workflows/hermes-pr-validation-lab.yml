@@ -1,7 +1,6 @@
 name: Hermes PR Validation Lab
 
 on:
-  workflow_dispatch:
   pull_request:
     paths:
       - '.github/workflows/hermes-pr-validation-lab.yml'
@@ -37,6 +36,7 @@ jobs:
         uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
         with:
           ref: ${{ matrix.ref }}
+          persist-credentials: false
 
       - name: Prepare locked Hermes toolchain
         uses: ./.github/actions/setup-pm
@@ -44,6 +44,12 @@ jobs:
           toolchain: all
           extras: '[]'
           test-environment: 'true'
+          cache: 'false'
+          cache-python: 'false'
+          cache-node: 'false'
+          save-tools-cache: 'false'
+          save-python-cache: 'false'
+          save-node-cache: 'false'
 
       - name: Install Node workspace
         uses: ./.github/actions/retry
