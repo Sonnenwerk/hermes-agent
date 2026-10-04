@@ -1,6 +1,6 @@
 name: Hermes PR Validation Lab
 
-# Target branches are fetched at run time so each PR update validates their current heads.
+# Target branches are fetched at run time so each PR update validates their current heads. Shell-ready rerun.
 
 on:
   pull_request:
