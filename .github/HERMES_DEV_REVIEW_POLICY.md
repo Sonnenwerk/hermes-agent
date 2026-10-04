@@ -33,7 +33,7 @@ A heuristic bypass is not automatically a vulnerability unless it crosses a boun
 
 Blocking checks are reserved for deterministic, low-noise violations such as type/build failures, unsafe workflow permission patterns, and explicit executable supply-chain hazards.
 
-Advisory checks cover patterns that require judgment, such as profile/scope hazards, async scope crossings, architecture drift, and public-surface changes.
+Advisory checks cover patterns that require judgment, such as profile/scope hazards, async scope crossings, architecture drift, and public-surface changes. Advisory findings MUST remain visible to reviewers but MUST NOT fail the merge gate by themselves.
 
 ## Completion
 
@@ -45,3 +45,10 @@ Report evidence as:
 - **not tested** — no current execution evidence.
 
 Prior-head CI does not verify a newer head.
+
+## Review-check roles
+
+- Typecheck, build, focused regression tests, deterministic workflow-trust violations, and explicit executable supply-chain hazards are blocking evidence.
+- Scope-boundary and interface-contract pattern checks are advisory review routers. They identify where semantic review is required; they are not substitutes for compiler or behavioral tests.
+- Repeated findings inherited identically by all evaluated feature branches should be treated as shared baseline noise, not as branch-specific defects.
+- Async scope review should focus on late completions that combine profile/scope/gateway identity with asynchronous work and state mutation.
