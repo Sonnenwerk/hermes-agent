@@ -1,5 +1,7 @@
 name: Hermes PR Validation Lab
 
+# Target branches are fetched at run time so each PR update validates their current heads.
+
 on:
   pull_request:
     paths:
