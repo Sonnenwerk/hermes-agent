@@ -9,29 +9,58 @@ permissions:
 
 jobs:
   review:
-    name: ${{ matrix.check }}
+    name: ${{ matrix.target }} / ${{ matrix.check }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - check: security-contract
-            command: python scripts/ci/check_security_contract.py
-          - check: scope-boundaries
-            command: python scripts/ci/check_scope_boundaries.py
-          - check: interface-contracts
-            command: python scripts/ci/check_interface_contracts.py
-          - check: skill-plugin-security
-            command: python scripts/ci/check_skill_plugin_security.py
+        target:
+          - capabilities-providers
+          - local-models
+          - update-recovery
+        check:
+          - security-contract
+          - scope-boundaries
+          - interface-contracts
+          - skill-plugin-security
     steps:
-      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+      - name: Checkout review tooling
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
         with:
           fetch-depth: 0
-      - name: Run check
-        env:
-          BASE: origin/${{ github.base_ref || 'main' }}
-        run: ${{ matrix.command }} --base "$BASE" --head HEAD
+
+      - name: Fetch target and upstream base
+        shell: bash
+        run: |
+          case "${{ matrix.target }}" in
+            capabilities-providers) TARGET_BRANCH="feature/consolidated-capabilities-providers" ;;
+            local-models) TARGET_BRANCH="feature/consolidated-local-models" ;;
+            update-recovery) TARGET_BRANCH="feature/consolidated-update-recovery" ;;
+            *) echo "unknown target"; exit 2 ;;
+          esac
+          git fetch --no-tags origin "$TARGET_BRANCH:refs/remotes/origin/$TARGET_BRANCH"
+          if ! git remote get-url upstream >/dev/null 2>&1; then
+            git remote add upstream https://github.com/NousResearch/hermes-agent.git
+          fi
+          git fetch --no-tags upstream main:refs/remotes/upstream/main
+          echo "TARGET_REF=origin/$TARGET_BRANCH" >> "$GITHUB_ENV"
+
+      - name: Run security contract
+        if: matrix.check == 'security-contract'
+        run: python scripts/ci/check_security_contract.py --base upstream/main --head "$TARGET_REF"
+
+      - name: Run scope boundaries
+        if: matrix.check == 'scope-boundaries'
+        run: python scripts/ci/check_scope_boundaries.py --base upstream/main --head "$TARGET_REF"
+
+      - name: Run interface contracts
+        if: matrix.check == 'interface-contracts'
+        run: python scripts/ci/check_interface_contracts.py --base upstream/main --head "$TARGET_REF"
+
+      - name: Run skill/plugin security
+        if: matrix.check == 'skill-plugin-security'
+        run: python scripts/ci/check_skill_plugin_security.py --base upstream/main --head "$TARGET_REF"
 
   gate:
     name: Hermes Dev Review / Gate
