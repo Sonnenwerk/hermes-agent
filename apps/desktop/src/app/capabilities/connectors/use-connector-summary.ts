@@ -7,6 +7,7 @@ import { getServers } from '@/lib/mcp-servers'
 import { useHermesConfigRecord } from '../../hooks/use-config-record'
 import { MCP_CATALOG_KEY } from '../mcp/mcp-status'
 import { deriveCards } from './derive'
+import type { ConnectorCardModel } from './types'
 import { joinBundledEntries, joinLocalServers } from './data/join'
 import { useHostedConnectors, usePluginServers } from './data/queries'
 
@@ -14,6 +15,14 @@ export interface ConnectorSummary {
   active: number
   loading: boolean
   total: number
+}
+
+/** Configured/enabled is the badge contract; runtime health is intentionally ignored. */
+export function isConnectorConfiguredActive(card: ConnectorCardModel): boolean {
+  const hostedOn = card.ways.hosted?.connected === true && card.ways.hosted.offBy == null
+  const localOn = card.ways.local?.installed === true && card.ways.local.serverEnabled === true
+
+  return hostedOn || localOn
 }
 
 /** Lightweight connector counts for the Capabilities submenu.
@@ -55,12 +64,7 @@ export function useConnectorSummary(profile: ProfileScope): ConnectorSummary {
     [availableCatalog, hosted.rows, hosted.titles, local, pluginServers]
   )
 
-  const active = cards.filter(card => {
-    const hostedOn = card.ways.hosted?.state === 'connected'
-    const localOn = card.ways.local?.installed === true && card.ways.local.serverEnabled === true
-
-    return hostedOn || localOn
-  }).length
+  const active = cards.filter(isConnectorConfiguredActive).length
 
   return {
     active,
