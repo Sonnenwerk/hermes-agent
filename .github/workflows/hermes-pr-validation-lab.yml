@@ -1,0 +1,98 @@
+name: Hermes PR Validation Lab
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/hermes-pr-validation-lab.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hermes-pr-validation-lab-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: capabilities-providers
+            ref: feature/consolidated-capabilities-providers
+            focus: capabilities
+          - name: local-models
+            ref: feature/consolidated-local-models
+            focus: local-models
+          - name: update-recovery
+            ref: feature/consolidated-update-recovery
+            focus: update-recovery
+
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
+        with:
+          ref: ${{ matrix.ref }}
+
+      - name: Prepare locked Hermes toolchain
+        uses: ./.github/actions/setup-pm
+        with:
+          toolchain: all
+          extras: '[]'
+          test-environment: 'true'
+
+      - name: Install Node workspace
+        uses: ./.github/actions/retry
+        with:
+          command: npm ci
+
+      - name: Desktop typecheck
+        run: npm --workspace apps/desktop run typecheck
+
+      - name: Desktop build
+        run: npm --workspace apps/desktop run build
+
+      - name: Capabilities regression tests
+        if: matrix.focus == 'capabilities'
+        working-directory: apps/desktop
+        run: npx vitest run --project ui src/app/settings/providers-settings.test.tsx
+
+      - name: Local models regression tests
+        if: matrix.focus == 'local-models'
+        working-directory: apps/desktop
+        run: npx vitest run --project ui src/app/settings/local-models-models-section.test.tsx
+
+      - name: Cron model regression tests
+        if: matrix.focus == 'update-recovery'
+        working-directory: web
+        run: npx vitest run src/lib/cron-job.test.ts
+
+      - name: Update config migration regression tests
+        if: matrix.focus == 'update-recovery'
+        run: python -m pytest -q tests/hermes_cli/test_update_config_migration_on_current.py
+
+      - name: Desktop update UI regression tests
+        if: matrix.focus == 'update-recovery'
+        working-directory: apps/desktop
+        run: >
+          npx vitest run --project ui
+          src/app/updates-overlay.manual.test.tsx
+          src/components/boot-failure-desktop-update.test.tsx
+
+  gate:
+    name: Hermes PR Validation Lab / Gate
+    needs: validate
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require all branch validations
+        env:
+          RESULT: ${{ needs.validate.result }}
+        run: |
+          echo "Matrix result: $RESULT"
+          test "$RESULT" = "success"
