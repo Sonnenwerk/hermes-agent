@@ -108,16 +108,57 @@ export function useCapabilityScope({
   // selection would be surprising.
   useOnProfileSwitch(() => setScopeOverride(null))
 
-  // Keep presentation identity separate from routing identity. The pill shows
-  // the same profile label users see elsewhere; connection ids, host labels,
-  // addresses, ports and "current" markers remain internal to `value`.
+  // Keep presentation identity separate from routing identity. Profile names
+  // stay clean in the common case; only collisions get a connection suffix so
+  // every visible choice still maps unambiguously to one backend scope. Raw
+  // addresses/ports and "current" markers never become primary UI.
   const options: ScopeOption[] = useMemo(() => {
     if (multiConnection && rosterData?.agents?.length) {
-      return rosterData.agents.map((agent: DesktopRosterAgent) => ({
-        key: `${agent.connectionId}::${agent.profile}`,
-        label: agent.profile,
-        value: `${agent.connectionId}::${agent.profile}`
-      }))
+      const agents = rosterData.agents as DesktopRosterAgent[]
+      const profileCounts = new Map<string, number>()
+
+      for (const agent of agents) {
+        const key = agent.profile.trim().toLocaleLowerCase()
+        profileCounts.set(key, (profileCounts.get(key) ?? 0) + 1)
+      }
+
+      const collisionLabels = new Map<string, number>()
+      const baseLabels = agents.map(agent => {
+        const profileKey = agent.profile.trim().toLocaleLowerCase()
+
+        if ((profileCounts.get(profileKey) ?? 0) <= 1) {
+          return agent.profile
+        }
+
+        const connectionLabel = agent.connectionLabel?.trim() || agent.connectionId
+        const looksTechnical =
+          /^https?:\/\//i.test(connectionLabel) ||
+          /^\[?[0-9a-f:.]+\]?(?::\d+)?$/i.test(connectionLabel) ||
+          /^[\w.-]+:\d+$/.test(connectionLabel)
+        const friendlyConnection =
+          agent.connectionKind === 'local'
+            ? connectionLabel || agent.connectionId
+            : looksTechnical
+              ? agent.connectionId
+              : connectionLabel
+
+        const label = `${agent.profile} · ${friendlyConnection}`
+        collisionLabels.set(label, (collisionLabels.get(label) ?? 0) + 1)
+
+        return label
+      })
+
+      return agents.map((agent, index) => {
+        const baseLabel = baseLabels[index]
+        const label =
+          (collisionLabels.get(baseLabel) ?? 0) > 1 ? `${baseLabel} (${agent.connectionId})` : baseLabel
+
+        return {
+          key: `${agent.connectionId}::${agent.profile}`,
+          label,
+          value: `${agent.connectionId}::${agent.profile}`
+        }
+      })
     }
 
     return (profilesData?.profiles ?? []).map(p => ({
