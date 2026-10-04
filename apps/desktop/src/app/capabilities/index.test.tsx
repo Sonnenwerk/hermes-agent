@@ -432,6 +432,93 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     }
   })
 
+  it('disambiguates duplicate profile names by connection without exposing transport addresses', async () => {
+    const connections = {
+      list: vi.fn().mockResolvedValue({
+        version: 2,
+        primary: 'local',
+        secureTokenStorage: true,
+        connections: [
+          { id: 'local', kind: 'local', label: 'This device', tokenSet: false, tokenPreview: null },
+          { id: 'homelab', kind: 'remote', label: '192.168.178.94:9120', tokenSet: true, tokenPreview: '…' }
+        ]
+      })
+    }
+
+    const getAgentRoster = vi.fn().mockResolvedValue({
+      agents: [
+        {
+          connectionId: 'local',
+          connectionKind: 'local',
+          connectionLabel: 'This device',
+          profile: 'default',
+          handle: 'default'
+        },
+        {
+          connectionId: 'homelab',
+          connectionKind: 'remote',
+          connectionLabel: '192.168.178.94:9120',
+          profile: 'default',
+          handle: 'default-homelab'
+        }
+      ],
+      sources: []
+    })
+
+    ;(window as { hermesDesktop?: unknown }).hermesDesktop = { connections, getAgentRoster }
+
+    try {
+      await renderSkills()
+
+      await waitFor(() => expect(getAgentRoster).toHaveBeenCalled())
+      expect(await screen.findByRole('button', { name: 'default · This device' })).toBeTruthy()
+      expect(await screen.findByRole('button', { name: 'default · homelab' })).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'default' })).toBeNull()
+      expect(screen.queryByText(/192\.168\.178\.94:9120/)).toBeNull()
+      expect(screen.queryByText(/\(current\)/i)).toBeNull()
+    } finally {
+      delete (window as { hermesDesktop?: unknown }).hermesDesktop
+    }
+  })
+
+  it('drops previous-scope results immediately when profile scope changes', async () => {
+    getProfiles.mockResolvedValue({
+      profiles: [
+        { name: 'default', is_default: true },
+        { name: 'researcher', is_default: false }
+      ]
+    })
+
+    let resolveResearcher: ((value: unknown) => void) | undefined
+    const researcherResult = new Promise(resolve => {
+      resolveResearcher = resolve
+    })
+
+    getToolsets.mockImplementation((profile?: string) =>
+      profile === 'researcher'
+        ? researcherResult
+        : Promise.resolve([toolset({ name: 'default-only', label: 'Default Only' })])
+    )
+
+    await renderSkills()
+    expect(await screen.findByText('Default Only')).toBeTruthy()
+
+    const search = await screen.findByRole('textbox')
+    fireEvent.change(search, { target: { value: 'Only' } })
+    expect(screen.getByText('Default Only')).toBeTruthy()
+
+    const researcher = await screen.findByRole('button', { name: 'researcher' })
+    fireEvent.click(researcher)
+
+    // The tab is keyed by scope, so stale rows from the previous profile are
+    // removed before the next profile's request resolves.
+    await waitFor(() => expect(getToolsets).toHaveBeenCalledWith('researcher'))
+    expect(screen.queryByText('Default Only')).toBeNull()
+
+    resolveResearcher?.([toolset({ name: 'research-only', label: 'Research Only' })])
+    expect(await screen.findByText('Research Only')).toBeTruthy()
+  })
+
   it('shows breadcrumb, explanatory copy, and active / available counts', async () => {
     getSkills.mockResolvedValue([
       { name: 'one', description: 'One', category: 'test', enabled: true },
