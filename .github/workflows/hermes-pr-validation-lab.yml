@@ -1,0 +1,131 @@
+name: Hermes PR Validation Lab
+
+# Target branches are fetched at run time so each PR update validates their current heads. Shell-ready rerun.
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/hermes-pr-validation-lab.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hermes-pr-validation-lab-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: capabilities-providers
+            ref: feature/consolidated-capabilities-providers
+            focus: capabilities
+          - name: local-models
+            ref: feature/consolidated-local-models
+            focus: local-models
+          - name: update-recovery
+            ref: feature/consolidated-update-recovery
+            focus: update-recovery
+
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
+        with:
+          ref: ${{ matrix.ref }}
+          persist-credentials: false
+
+      - name: Prepare locked Hermes toolchain
+        uses: ./.github/actions/setup-pm
+        with:
+          toolchain: all
+          extras: '[]'
+          test-environment: 'true'
+          cache: 'false'
+          cache-python: 'false'
+          cache-node: 'false'
+          save-tools-cache: 'false'
+          save-python-cache: 'false'
+          save-node-cache: 'false'
+
+      - name: Install Node workspace
+        uses: ./.github/actions/retry
+        with:
+          command: npm ci
+
+      - name: Desktop typecheck
+        run: npm --workspace apps/desktop run typecheck
+
+      - name: Desktop build
+        run: npm --workspace apps/desktop run build
+
+      - name: Capabilities regression tests
+        if: matrix.focus == 'capabilities'
+        working-directory: apps/desktop
+        run: >
+          npx vitest run --project ui
+          src/app/capabilities/index.test.tsx
+          src/app/capabilities/capabilities-header.test.tsx
+          src/app/settings/providers-settings.test.tsx
+
+      - name: Install Electron E2E system dependencies
+        if: matrix.focus == 'capabilities'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq             xvfb             libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6             xdg-utils libatspi2.0-0 libdrm2 libgbm1 libasound2t64
+
+      - name: Capabilities desktop E2E golden path
+        if: matrix.focus == 'capabilities'
+        working-directory: apps/desktop
+        env:
+          CI: 'true'
+          OPENROUTER_API_KEY: ''
+          OPENAI_API_KEY: ''
+          NOUS_API_KEY: ''
+        run: >
+          xvfb-run -a --server-args="-screen 0 1280x1024x24"
+          npx playwright test e2e/capabilities-golden-path.spec.ts --workers=1 --reporter=list
+
+      - name: Local models regression tests
+        if: matrix.focus == 'local-models'
+        working-directory: apps/desktop
+        run: >
+          npx vitest run --project ui
+          src/app/settings/local-models-models-section.test.tsx
+          src/app/settings/local-models-settings.test.tsx
+
+      - name: Cron model regression tests
+        if: matrix.focus == 'update-recovery'
+        working-directory: web
+        run: npx vitest run src/lib/cron-job.test.ts
+
+      - name: Update config migration regression tests
+        if: matrix.focus == 'update-recovery'
+        run: scripts/run_tests.sh tests/hermes_cli/test_update_config_migration_on_current.py
+
+      - name: Desktop update UI regression tests
+        if: matrix.focus == 'update-recovery'
+        working-directory: apps/desktop
+        run: >
+          npx vitest run --project ui
+          src/app/updates-overlay.manual.test.tsx
+          src/components/boot-failure-desktop-update.test.tsx
+
+  gate:
+    name: Hermes PR Validation Lab / Gate
+    needs: validate
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require all branch validations
+        env:
+          RESULT: ${{ needs.validate.result }}
+        run: |
+          echo "Matrix result: $RESULT"
+          test "$RESULT" = "success"

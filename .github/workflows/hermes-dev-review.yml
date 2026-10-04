@@ -1,0 +1,136 @@
+name: Hermes Dev Review
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tooling-security:
+    name: review-tooling / security-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout review tooling
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          fetch-depth: 0
+      - name: Check review workflow trust boundaries
+        run: python scripts/ci/check_security_contract.py --base origin/main --head HEAD
+
+  review:
+    name: ${{ matrix.target }} / ${{ matrix.check }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: capabilities-providers
+            check: security-contract
+            blocking: true
+          - target: capabilities-providers
+            check: scope-boundaries
+            blocking: false
+          - target: capabilities-providers
+            check: interface-contracts
+            blocking: false
+          - target: capabilities-providers
+            check: skill-plugin-security
+            blocking: true
+          - target: local-models
+            check: security-contract
+            blocking: true
+          - target: local-models
+            check: scope-boundaries
+            blocking: false
+          - target: local-models
+            check: interface-contracts
+            blocking: false
+          - target: local-models
+            check: skill-plugin-security
+            blocking: true
+          - target: update-recovery
+            check: security-contract
+            blocking: true
+          - target: update-recovery
+            check: scope-boundaries
+            blocking: false
+          - target: update-recovery
+            check: interface-contracts
+            blocking: false
+          - target: update-recovery
+            check: skill-plugin-security
+            blocking: true
+    steps:
+      - name: Checkout review tooling
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          fetch-depth: 0
+
+      - name: Fetch targets and upstream base
+        shell: bash
+        run: |
+          case "${{ matrix.target }}" in
+            capabilities-providers) TARGET_BRANCH="feature/consolidated-capabilities-providers" ;;
+            local-models) TARGET_BRANCH="feature/consolidated-local-models" ;;
+            update-recovery) TARGET_BRANCH="feature/consolidated-update-recovery" ;;
+            *) echo "unknown target"; exit 2 ;;
+          esac
+          for branch in             feature/consolidated-capabilities-providers             feature/consolidated-local-models             feature/consolidated-update-recovery
+          do
+            git fetch --no-tags origin "$branch:refs/remotes/origin/$branch"
+          done
+          if ! git remote get-url upstream >/dev/null 2>&1; then
+            git remote add upstream https://github.com/NousResearch/hermes-agent.git
+          fi
+          git fetch --no-tags upstream main:refs/remotes/upstream/main
+
+          COMMON_BASE=$(git merge-base --octopus             origin/feature/consolidated-capabilities-providers             origin/feature/consolidated-local-models             origin/feature/consolidated-update-recovery)
+
+          echo "TARGET_REF=origin/$TARGET_BRANCH" >> "$GITHUB_ENV"
+          echo "COMMON_SCOPE_BASE=$COMMON_BASE" >> "$GITHUB_ENV"
+
+      - name: Run security contract
+        if: matrix.check == 'security-contract'
+        run: python scripts/ci/check_security_contract.py --base upstream/main --head "$TARGET_REF"
+
+      - name: Run scope boundaries
+        if: matrix.check == 'scope-boundaries'
+        continue-on-error: true
+        run: >
+          python scripts/ci/check_scope_boundaries.py
+          --base upstream/main
+          --scope-baseline "$COMMON_SCOPE_BASE"
+          --head "$TARGET_REF"
+
+      - name: Run interface contracts
+        if: matrix.check == 'interface-contracts'
+        continue-on-error: true
+        run: python scripts/ci/check_interface_contracts.py --base upstream/main --head "$TARGET_REF"
+
+      - name: Run skill/plugin security
+        if: matrix.check == 'skill-plugin-security'
+        run: python scripts/ci/check_skill_plugin_security.py --base upstream/main --head "$TARGET_REF"
+
+      - name: Record advisory result
+        if: matrix.blocking == false
+        run: echo "Advisory check completed; findings require reviewer judgment and do not block the gate."
+
+  gate:
+    name: Hermes Dev Review / Gate
+    if: always()
+    needs:
+      - tooling-security
+      - review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require deterministic checks
+        env:
+          TOOLING: ${{ needs.tooling-security.result }}
+          REVIEW: ${{ needs.review.result }}
+        run: |
+          test "$TOOLING" = "success"
+          test "$REVIEW" = "success"
