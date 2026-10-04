@@ -113,14 +113,6 @@ export const en: Translations = {
     multiplexStandaloneBanner:
       "Your gateway serves only one profile. Not served: {profiles}. Why: {reason}. Fix: hermes gateway migrate --multiplex",
     dismiss: "Dismiss",
-    sharedMetricsTitle: "Help improve Hermes?",
-    sharedMetricsBody:
-      "Shared metrics are bounded counters, never prompts, files, paths or error text. Collection stays on this machine; sending to Nous is a separate choice.",
-    sharedMetricsShare: "Send to Nous",
-    sharedMetricsLocal: "Local only",
-    sharedMetricsOff: "No thanks",
-    sharedMetricsDetails: "Details",
-    sharedMetricsSaveFailed: "Couldn't save your choice",
   },
 
   status: {
@@ -274,6 +266,13 @@ export const en: Translations = {
     // user has seen; name the field they must fill instead.
     scriptRequired:
       "Script-only jobs need a script path. Fill in the Script field or switch the job back to prompt mode.",
+    modelUsesDefault: "Uses default model",
+    modelNotNeeded: "No model needed",
+    modelDefaultOption: "Use default model",
+    modelDefaultHint:
+      "This job follows the configured cron model, or the main model when no cron model is set.",
+    modelNotNeededHint:
+      "This script-only job does not start the agent, so model settings are ignored.",
     confirmDeleteMessage:
       "This removes the job from the schedule. This cannot be undone.",
     confirmDeleteTitle: "Delete scheduled job?",

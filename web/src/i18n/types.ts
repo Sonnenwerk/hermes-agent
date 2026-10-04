@@ -130,14 +130,6 @@ export interface Translations {
     /** Multi-profile host whose gateway boots standalone on a guard — optional, English fallback. */
     multiplexStandaloneBanner?: string;
     dismiss?: string;
-    /** First-run shared-metrics offer — optional, English fallback. */
-    sharedMetricsTitle?: string;
-    sharedMetricsBody?: string;
-    sharedMetricsShare?: string;
-    sharedMetricsLocal?: string;
-    sharedMetricsOff?: string;
-    sharedMetricsDetails?: string;
-    sharedMetricsSaveFailed?: string;
   };
 
   // ── Status page ──
@@ -289,6 +281,11 @@ export interface Translations {
     /** Optional — English fallback until translated. */
     loadWhat?: string;
     scriptRequired?: string;
+    modelUsesDefault?: string;
+    modelNotNeeded?: string;
+    modelDefaultOption?: string;
+    modelDefaultHint?: string;
+    modelNotNeededHint?: string;
     confirmDeleteMessage: string;
     confirmDeleteTitle: string;
     newJob: string;
