@@ -64,7 +64,10 @@ jobs:
       - name: Local models regression tests
         if: matrix.focus == 'local-models'
         working-directory: apps/desktop
-        run: npx vitest run --project ui src/app/settings/local-models-models-section.test.tsx
+        run: >
+          npx vitest run --project ui
+          src/app/settings/local-models-models-section.test.tsx
+          src/app/settings/local-models-settings.test.tsx
 
       - name: Cron model regression tests
         if: matrix.focus == 'update-recovery'
