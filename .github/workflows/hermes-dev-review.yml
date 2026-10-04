@@ -1,0 +1,45 @@
+name: Hermes Dev Review
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: ${{ matrix.check }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check: security-contract
+            command: python scripts/ci/check_security_contract.py
+          - check: scope-boundaries
+            command: python scripts/ci/check_scope_boundaries.py
+          - check: interface-contracts
+            command: python scripts/ci/check_interface_contracts.py
+          - check: skill-plugin-security
+            command: python scripts/ci/check_skill_plugin_security.py
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          fetch-depth: 0
+      - name: Run check
+        env:
+          BASE: origin/${{ github.base_ref || 'main' }}
+        run: ${{ matrix.command }} --base "$BASE" --head HEAD
+
+  gate:
+    name: Hermes Dev Review / Gate
+    if: always()
+    needs: review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require blocking checks
+        env:
+          RESULT: ${{ needs.review.result }}
+        run: test "$RESULT" = "success"
