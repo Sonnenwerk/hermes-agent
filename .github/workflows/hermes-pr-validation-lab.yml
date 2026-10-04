@@ -65,7 +65,29 @@ jobs:
       - name: Capabilities regression tests
         if: matrix.focus == 'capabilities'
         working-directory: apps/desktop
-        run: npx vitest run --project ui src/app/settings/providers-settings.test.tsx
+        run: >
+          npx vitest run --project ui
+          src/app/capabilities/index.test.tsx
+          src/app/capabilities/capabilities-header.test.tsx
+          src/app/settings/providers-settings.test.tsx
+
+      - name: Install Electron E2E system dependencies
+        if: matrix.focus == 'capabilities'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq             xvfb             libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6             xdg-utils libatspi2.0-0 libdrm2 libgbm1 libasound2t64
+
+      - name: Capabilities desktop E2E golden path
+        if: matrix.focus == 'capabilities'
+        working-directory: apps/desktop
+        env:
+          CI: 'true'
+          OPENROUTER_API_KEY: ''
+          OPENAI_API_KEY: ''
+          NOUS_API_KEY: ''
+        run: >
+          xvfb-run -a --server-args="-screen 0 1280x1024x24"
+          npx playwright test e2e/capabilities-golden-path.spec.ts --workers=1 --reporter=list
 
       - name: Local models regression tests
         if: matrix.focus == 'local-models'
@@ -82,7 +104,7 @@ jobs:
 
       - name: Update config migration regression tests
         if: matrix.focus == 'update-recovery'
-        run: python -m pytest -q tests/hermes_cli/test_update_config_migration_on_current.py
+        run: scripts/run_tests.sh tests/hermes_cli/test_update_config_migration_on_current.py
 
       - name: Desktop update UI regression tests
         if: matrix.focus == 'update-recovery'
