@@ -9,6 +9,7 @@ import {
   isDesktopRelevantPlugin,
   loadAgentPlugins,
   normalizeAgentPluginRow,
+  reloadAgentPluginsIfScopeActive,
   saveAgentPluginSettings,
   toggleAgentPlugin
 } from './agent-plugins'
@@ -171,6 +172,28 @@ describe('loadAgentPlugins scope isolation', () => {
 
     expect($agentPlugins.get()).toEqual([expect.objectContaining({ key: 'homelab-only' })])
     expect($agentPluginsStatus.get()).toBe('ready')
+  })
+
+  it('does not let a stale caller rescan reactivate a scope the user already left', async () => {
+    const localRow = row({ key: 'local-only', name: 'Local only', source: 'user' })
+    const homelabRow = row({ key: 'homelab-only', name: 'Homelab only', source: 'user' })
+    const localRequest = vi.fn(async () => ({ plugins: [localRow] }))
+    const homelabRequest = vi.fn(async () => ({ plugins: [homelabRow] }))
+
+    await loadAgentPlugins(localRequest as never, 'default', 'local::default')
+    await loadAgentPlugins(homelabRequest as never, 'default', 'homelab::default')
+
+    expect(
+      await reloadAgentPluginsIfScopeActive(localRequest as never, 'default', 'local::default')
+    ).toBe(false)
+    expect(localRequest).toHaveBeenCalledTimes(1)
+    expect($agentPlugins.get()).toEqual([expect.objectContaining({ key: 'homelab-only' })])
+
+    expect(
+      await reloadAgentPluginsIfScopeActive(homelabRequest as never, 'default', 'homelab::default')
+    ).toBe(true)
+    expect(homelabRequest).toHaveBeenCalledTimes(2)
+    expect($agentPlugins.get()).toEqual([expect.objectContaining({ key: 'homelab-only' })])
   })
 })
 

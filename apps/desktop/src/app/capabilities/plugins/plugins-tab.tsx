@@ -37,6 +37,7 @@ import {
   type GatewayRequest,
   isDesktopRelevantPlugin,
   loadAgentPlugins,
+  reloadAgentPluginsIfScopeActive,
   removeAgentPlugin,
   saveAgentPluginSettings,
   toggleAgentPlugin,
@@ -132,7 +133,7 @@ async function revealPluginsDir() {
 async function rescanAll(requestGateway: GatewayRequest, scope: null | string, scopeKey: string) {
   await window.hermesDesktop?.reconcileDesktopPlugins?.().catch(() => undefined)
   await discoverRuntimePlugins()
-  await loadAgentPlugins(requestGateway, scope, scopeKey)
+  await reloadAgentPluginsIfScopeActive(requestGateway, scope, scopeKey)
 }
 
 /** Open the dual-target install modal pre-filled to install ONLY the agent
