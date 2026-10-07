@@ -231,6 +231,25 @@ export function loadAgentPlugins(
   return inflight
 }
 
+/**
+ * Refetch only if this is still the scope rendered by the Plugins surface.
+ * Async callers capture their original scope; after a profile/gateway switch
+ * they must not reactivate that retired scope in the global plugin store.
+ */
+export async function reloadAgentPluginsIfScopeActive(
+  request: GatewayRequest,
+  profile: string | null | undefined,
+  scopeKey: string | null
+): Promise<boolean> {
+  if (activeScopeKey !== scopeKey) {
+    return false
+  }
+
+  await loadAgentPlugins(request, profile, scopeKey)
+
+  return true
+}
+
 /** Flip a backend plugin on/off and patch the row from the RPC's refreshed
  *  copy. Addressed by canonical key ONLY — bare names collide across category
  *  dirs (image_gen/fal vs video_gen/fal), which is exactly why the backend
